@@ -1,98 +1,179 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Interactive AI Learning App</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+let score = 0;
 
-<body>
+// ================= AI TUTOR =================
+async function askAI() {
+  const question = document.getElementById("question").value;
 
-<!-- HEADER -->
-<header>
-  <h1>Interactive AI Learning App</h1>
-  <p>Learn with AI, 3D Models and Quizzes</p>
-  <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
-</header>
+  try {
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?keyAQ.Ab8RN6IiNmiMbimTJzJyomho3smbSu_qyBfloQW4XS8lrvMX5QYOUR_API_KEY",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: question }]
+            }
+          ]
+        })
+      }
+    );
 
-<div class="container">
+    const data = await response.json();
 
-  <!-- AI TUTOR -->
-  <div class="card">
-    <h2>AI Tutor</h2>
+    const answer =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No response received";
 
-    <input type="text" id="question" placeholder="Ask a question">
+    document.getElementById("answer").innerText = answer;
 
-    <button onclick="startListening()">🎤 Speak Question</button>
-    <button onclick="askAI()">Ask AI</button>
+  } catch (error) {
+    document.getElementById("answer").innerText =
+      "Error connecting to AI";
+  }
+}
 
-    <p id="answer"></p>
-    <button onclick="speakAnswer()">🔊 Speak Answer</button>
-  </div>
+// ================= SPEECH =================
+function speakAnswer() {
+  let text = document.getElementById("answer").innerText;
+  let speech = new SpeechSynthesisUtterance(text);
+  speechSynthesis.speak(speech);
+}
 
-  <!-- QUIZ SECTION -->
-  <div class="card">
-    <h2>Quiz Section</h2>
+function startListening() {
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-US";
 
-    <p id="questionText">What is the capital of India?</p>
+  recognition.start();
 
-    <button onclick="checkAnswer('Delhi')">Delhi</button>
-    <button onclick="checkAnswer('Mumbai')">Mumbai</button>
-    <button onclick="checkAnswer('Chennai')">Chennai</button>
-    <button onclick="checkAnswer('Hyderabad')">Hyderabad</button>
+  recognition.onresult = function (event) {
+    document.getElementById("question").value =
+      event.results[0][0].transcript;
+  };
+}
 
-    <p id="quizResult"></p>
+// ================= DARK MODE =================
+function toggleDarkMode() {
+  document.body.classList.toggle("dark-mode");
+}
 
-    <p>Score: <span id="score">0</span></p>
-  </div>
+// ================= SUBJECTS =================
+function showSubject(subject) {
+  let content = "";
 
-  <!-- 3D SECTION -->
-  <div class="card">
-    <h2>3D Learning</h2>
-    <div id="cube3d"></div>
-  </div>
+  if (subject === "Physics") {
+    content = "Physics deals with matter, energy and forces.";
+  } else if (subject === "Chemistry") {
+    content = "Chemistry studies substances and their reactions.";
+  } else if (subject === "Biology") {
+    content = "Biology is the study of living organisms.";
+  } else if (subject === "Mathematics") {
+    content = "Mathematics deals with numbers and calculations.";
+  }
 
-  <!-- SUBJECTS -->
-  <div class="card">
-    <h2>Subjects</h2>
+  document.getElementById("subjectContent").innerText = content;
+}
 
-    <button onclick="showSubject('Physics')">Physics</button>
-    <button onclick="showSubject('Chemistry')">Chemistry</button>
-    <button onclick="showSubject('Biology')">Biology</button>
-    <button onclick="showSubject('Mathematics')">Mathematics</button>
+// ================= NOTES DOWNLOAD =================
+function downloadNotes() {
+  let text = document.getElementById("subjectContent").innerText;
 
-    <p id="subjectContent">Select a subject to begin learning.</p>
+  let element = document.createElement("a");
+  element.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+  );
+  element.setAttribute("download", "notes.txt");
 
-    <button onclick="downloadNotes()">📄 Download Notes</button>
-  </div>
+  element.style.display = "none";
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
 
-  <!-- LOGIN -->
-  <div class="card">
-    <h2>Login System</h2>
+// ================= LOGIN SYSTEM =================
+function signup() {
+  let username = document.getElementById("username").value;
 
-    <input type="text" id="username" placeholder="Enter Username">
-    <input type="password" id="password" placeholder="Enter Password">
+  localStorage.setItem("user", username);
 
-    <button onclick="login()">Login</button>
-    <button onclick="signup()">Sign Up</button>
+  document.getElementById("loginMessage").innerText =
+    "Signup Successful!";
+}
 
-    <p id="loginMessage"></p>
-  </div>
+function login() {
+  let username = document.getElementById("username").value;
+  let savedUser = localStorage.getItem("user");
 
-  <!-- DASHBOARD (ONLY ONE - FIXED) -->
-  <div class="card">
-    <h2>Student Dashboard</h2>
+  if (username === savedUser) {
+    document.getElementById("loginMessage").innerText =
+      "Login Successful!";
+  } else {
+    document.getElementById("loginMessage").innerText =
+      "User not found!";
+  }
+}
 
-    <p>Total Quiz Score: <span id="totalScore">0</span></p>
-    <p>Lessons Completed: <span id="lessons">1</span></p>
-    <p>Progress: <span id="progress">0</span>%</p>
-  </div>
+// ================= QUIZ =================
+function checkAnswer(answer) {
+  const correct = "Delhi";
 
-</div>
+  if (answer === correct) {
+    document.getElementById("quizResult").innerText =
+      "Correct Answer!";
+    score++;
+  } else {
+    document.getElementById("quizResult").innerText =
+      "Wrong Answer!";
+  }
 
-<!-- SCRIPTS (CORRECT ORDER) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="script.js"></script>
+  document.getElementById("score").innerText = score;
+  document.getElementById("totalScore").innerText = score;
+  document.getElementById("progress").innerText = score * 10;
 
-</body>
-</html>
+  load3D(); // show cube after answer
+}
+
+// ================= 3D CUBE (FIXED) =================
+let scene, camera, renderer, cube;
+let cubeCreated = false;
+
+function load3D() {
+  if (cubeCreated) return; // prevent duplicates
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(300, 300);
+
+  document.getElementById("cube3d").appendChild(renderer.domElement);
+
+  let geometry = new THREE.BoxGeometry();
+
+  let material = new THREE.MeshBasicMaterial({
+    color: 0x007bff,
+    wireframe: true
+  });
+
+  cube = new THREE.Mesh(geometry, material);
+  scene.add(cube);
+
+  camera.position.z = 3;
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+  cubeCreated = true;
+}
