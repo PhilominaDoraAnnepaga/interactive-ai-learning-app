@@ -1,259 +1,98 @@
-async function askAI(){
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive AI Learning App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 
-const question =
-document.getElementById("question").value;
+<body>
 
-const response = await fetch(
-https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AQ.Ab8RN6IiNmiMbimTJzJyomho3smbSu_qyBfloQW4XS8lrvMX5Q
-  {  
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-contents:[
-{
-parts:[
-{
-text:question
-}
-]
-}
-]
-})
-}
-);
+<!-- HEADER -->
+<header>
+  <h1>Interactive AI Learning App</h1>
+  <p>Learn with AI, 3D Models and Quizzes</p>
+  <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+</header>
 
-const data = await response.json();
+<div class="container">
 
-document.getElementById("answer").innerHTML =
-data.candidates[0].content.parts[0].text;
+  <!-- AI TUTOR -->
+  <div class="card">
+    <h2>AI Tutor</h2>
 
-}
-let score = 0;
+    <input type="text" id="question" placeholder="Ask a question">
 
-function checkAnswer(answer){
-  const scene = new THREE.Scene();
+    <button onclick="startListening()">🎤 Speak Question</button>
+    <button onclick="askAI()">Ask AI</button>
 
-const camera = new THREE.PerspectiveCamera(
-75,
-1,
-0.1,
-1000
-);
+    <p id="answer"></p>
+    <button onclick="speakAnswer()">🔊 Speak Answer</button>
+  </div>
 
-const renderer = new THREE.WebGLRenderer();
+  <!-- QUIZ SECTION -->
+  <div class="card">
+    <h2>Quiz Section</h2>
 
-renderer.setSize(300,300);
+    <p id="questionText">What is the capital of India?</p>
 
-document.getElementById("cube3d")
-.appendChild(renderer.domElement);
+    <button onclick="checkAnswer('Delhi')">Delhi</button>
+    <button onclick="checkAnswer('Mumbai')">Mumbai</button>
+    <button onclick="checkAnswer('Chennai')">Chennai</button>
+    <button onclick="checkAnswer('Hyderabad')">Hyderabad</button>
 
-const geometry =
-new THREE.BoxGeometry();
+    <p id="quizResult"></p>
 
-const material =
-new THREE.MeshBasicMaterial({
-color:0x007bff,
-wireframe:true
-});
+    <p>Score: <span id="score">0</span></p>
+  </div>
 
-const cube =
-new THREE.Mesh(
-geometry,
-material
-);
+  <!-- 3D SECTION -->
+  <div class="card">
+    <h2>3D Learning</h2>
+    <div id="cube3d"></div>
+  </div>
 
-scene.add(cube);
+  <!-- SUBJECTS -->
+  <div class="card">
+    <h2>Subjects</h2>
 
-camera.position.z = 3;
+    <button onclick="showSubject('Physics')">Physics</button>
+    <button onclick="showSubject('Chemistry')">Chemistry</button>
+    <button onclick="showSubject('Biology')">Biology</button>
+    <button onclick="showSubject('Mathematics')">Mathematics</button>
 
-function animate(){
+    <p id="subjectContent">Select a subject to begin learning.</p>
 
-requestAnimationFrame(
-animate
-);
+    <button onclick="downloadNotes()">📄 Download Notes</button>
+  </div>
 
-cube.rotation.x += 0.01;
+  <!-- LOGIN -->
+  <div class="card">
+    <h2>Login System</h2>
 
-cube.rotation.y += 0.01;
+    <input type="text" id="username" placeholder="Enter Username">
+    <input type="password" id="password" placeholder="Enter Password">
 
-renderer.render(
-scene,
-camera
-);
+    <button onclick="login()">Login</button>
+    <button onclick="signup()">Sign Up</button>
 
-}
+    <p id="loginMessage"></p>
+  </div>
 
-animate();
-  function speakAnswer(){
+  <!-- DASHBOARD (ONLY ONE - FIXED) -->
+  <div class="card">
+    <h2>Student Dashboard</h2>
 
-let answer =
-document.getElementById("answer").innerText;
+    <p>Total Quiz Score: <span id="totalScore">0</span></p>
+    <p>Lessons Completed: <span id="lessons">1</span></p>
+    <p>Progress: <span id="progress">0</span>%</p>
+  </div>
 
-let speech =
-new SpeechSynthesisUtterance(answer);
+</div>
 
-speechSynthesis.speak(speech);
+<!-- SCRIPTS (CORRECT ORDER) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="script.js"></script>
 
-}
-  function startListening(){
-
-const recognition =
-new webkitSpeechRecognition();
-
-recognition.lang = "en-US";
-
-recognition.start();
-
-recognition.onresult = function(event){
-
-document.getElementById("question").value =
-event.results[0][0].transcript;
-
-};
-
-}
-  function toggleDarkMode(){
-
-document.body.classList.toggle(
-"dark-mode"
-);
-
-}
-  function showSubject(subject){
-
-let content = "";
-
-if(subject==="Physics"){
-content =
-"Physics deals with matter, energy and forces.";
-}
-
-else if(subject==="Chemistry"){
-content =
-"Chemistry studies substances and their reactions.";
-}
-
-else if(subject==="Biology"){
-content =
-"Biology is the study of living organisms.";
-}
-
-else if(subject==="Mathematics"){
-content =
-"Mathematics deals with numbers and calculations.";
-}
-
-document.getElementById(
-"subjectContent"
-).innerHTML = content;
-
-}
-function downloadNotes(){
-
-let text =
-document.getElementById(
-"subjectContent"
-).innerText;
-
-let element =
-document.createElement("a");
-
-element.setAttribute(
-"href",
-"data:text/plain;charset=utf-8," +
-encodeURIComponent(text)
-);
-
-element.setAttribute(
-"download",
-"notes.txt"
-);
-
-element.style.display =
-"none";
-
-document.body.appendChild(
-element
-);
-
-element.click();
-
-document.body.removeChild(
-element
-);
-
-}
-  function signup(){
-
-let username =
-document.getElementById(
-"username"
-).value;
-
-localStorage.setItem(
-"user",
-username
-);
-
-document.getElementById(
-"loginMessage"
-).innerHTML =
-"Signup Successful!";
-
-}
-
-function login(){
-
-let username =
-document.getElementById(
-"username"
-).value;
-
-let savedUser =
-localStorage.getItem(
-"user"
-);
-
-if(username===savedUser){
-
-document.getElementById(
-"loginMessage"
-).innerHTML =
-"Login Successful!";
-
-}
-else{
-
-document.getElementById(
-"loginMessage"
-).innerHTML =
-"User not found!";
-
-}
-
-}
-if(answer==="Delhi"){
-
-document.getElementById("quizResult").innerHTML =
-"Correct Answer!";
-
-score++;
-
-}
-else{
-
-document.getElementById("quizResult").innerHTML =
-"Wrong Answer!";
-
-}
-
-document.getElementById("score").innerHTML =
-score;
-  
-  document.getElementById("totalScore").innerHTML = score;
-
-document.getElementById("progress").innerHTML = score * 10;
-
-}
+</body>
+</html>
